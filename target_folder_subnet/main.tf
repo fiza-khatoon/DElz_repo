@@ -11,16 +11,12 @@ resource "azurerm_subnet" "subnet" {
   service_endpoint_policy_ids           = var.subnets[count.index].service_endpoint_policy_ids
 
   dynamic "delegation" {
-    for_each = var.subnets[count.index].subnet_delegation
+    for_each = lookup(lookup(var.subnets[count.index], "subnet_delegation"), lookup(var.subnets[count.index], "subnet_name"), {})
     content {
       name = delegation.key
-
-      dynamic "service_delegation" {
-        for_each = delegation.value
-        content {
-          name    = service_delegation.value.service_name
-          actions = service_delegation.value.service_actions
-        }
+      service_delegation {
+        name    = lookup(delegation.value, "service_name")
+        actions = lookup(delegation.value, "service_actions", [])
       }
     }
   }
